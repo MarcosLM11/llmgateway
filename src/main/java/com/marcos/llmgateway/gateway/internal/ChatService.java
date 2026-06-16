@@ -1,5 +1,7 @@
 package com.marcos.llmgateway.gateway.internal;
 
+import com.marcos.llmgateway.gateway.ChatRequest;
+import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.LlmProvider;
 import org.springframework.stereotype.Service;
 
@@ -12,5 +14,7 @@ public class ChatService {
         this.llmProvider = llmProvider;
     }
 
-
+    public ChatResponse chat(ChatRequest request) {
+        return llmProvider.chat(request);
+    }
 }
