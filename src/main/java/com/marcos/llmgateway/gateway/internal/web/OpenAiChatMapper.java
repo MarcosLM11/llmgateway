@@ -5,15 +5,18 @@ import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.Message;
 import com.marcos.llmgateway.gateway.RoutingStrategy;
 import com.marcos.llmgateway.gateway.Role;
-import com.marcos.llmgateway.gateway.internal.web.dto.*;
-
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatRequestDTO;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatResponseDTO;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChoiceDTO;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiMessageDTO;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiUsageDTO;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public class OpenAiChatMapper {
 
-    public static ChatRequest toDomain(OpenAiChatRequestDTO request, RoutingStrategy strategy) {
+    public static ChatRequest toDomain(OpenAiChatRequestDTO request, RoutingStrategy strategy, String tenantId) {
         var chatMessages = request.messages().stream()
                 .map(m -> new Message(Role.valueOf(m.role().toUpperCase()), m.content()))
                 .toList();
@@ -21,7 +24,8 @@ public class OpenAiChatMapper {
                 request.model(),
                 chatMessages,
                 request.temperature(),
-                strategy
+                strategy,
+                tenantId
         );
     }
 
@@ -34,7 +38,7 @@ public class OpenAiChatMapper {
                 List.of(new OpenAiChoiceDTO(
                         0,
                         new OpenAiMessageDTO(
-                                chatResponse.message().role().toString().toLowerCase(),
+                                chatResponse.message().role().name(),
                                 chatResponse.message().content()
                         ),
                         "stop"

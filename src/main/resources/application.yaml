@@ -4,9 +4,15 @@ spring:
 
 logging:
   pattern:
-    level: "%5p [%X{requestId:-}]"
+    level: "%5p [%X{requestId:-}] [%X{tenantId:-}]"
 
 gateway:
+  security:
+    api-keys:
+      - key: sk-test-alice
+        tenant-id: alice-corp
+      - key: sk-test-bob
+        tenant-id: bob-startup
   providers:
     ollama:
       base-url: http://localhost:11434

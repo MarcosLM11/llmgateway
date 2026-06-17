@@ -6,6 +6,7 @@ public record ChatRequest(
         String model,
         List<Message> messages,
         Double temperature,
-        RoutingStrategy strategy
+        RoutingStrategy strategy,
+        String tenantId
 ) {
 }

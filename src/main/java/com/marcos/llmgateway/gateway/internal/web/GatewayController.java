@@ -5,6 +5,7 @@ import com.marcos.llmgateway.gateway.internal.ChatService;
 import com.marcos.llmgateway.gateway.internal.exceptions.InvalidStrategyException;
 import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatRequestDTO;
 import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatResponseDTO;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -26,9 +27,10 @@ public class GatewayController {
     @PostMapping("/chat/completions")
     public OpenAiChatResponseDTO openAiChat(
             @RequestBody OpenAiChatRequestDTO request,
-            @RequestHeader(value="X-Gateway-Strategy",required = false) String strategy
+            @RequestHeader(value="X-Gateway-Strategy",required = false) String strategy,
+            @AuthenticationPrincipal String tenantId
     ) {
-        var domainRequest = toDomain(request, resolveStrategy(strategy));
+        var domainRequest = toDomain(request, resolveStrategy(strategy), tenantId);
         var domainResponse = chatService.chat(domainRequest);
         return toDTO(domainResponse);
     }

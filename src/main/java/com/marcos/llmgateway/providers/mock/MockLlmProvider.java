@@ -50,7 +50,6 @@ public class MockLlmProvider implements LlmProvider {
                         .sum()/4,
                 10,
                 request.model());
-        System.out.println("[MOCK] task finished at " + System.currentTimeMillis() + " for model: " + request.model());
         return new ChatResponse(message, usage);
     }
 
