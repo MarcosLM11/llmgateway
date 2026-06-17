@@ -7,6 +7,11 @@ logging:
     level: "%5p [%X{requestId:-}] [%X{tenantId:-}]"
 
 gateway:
+  rate-limit:
+    enabled: true
+    capacity: 10
+    refill-tokens: 10
+    refill-period-seconds: 60
   security:
     api-keys:
       - key: sk-test-alice
@@ -20,4 +25,4 @@ gateway:
       enabled: true
       supported-models: mock-fast,mock-slow,qwen2.5-coder:7b
       fail-rate: 0.0
-      latency-ms: 5000
+      latency-ms: 0
