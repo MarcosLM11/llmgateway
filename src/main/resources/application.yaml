@@ -23,6 +23,6 @@ gateway:
       base-url: http://localhost:11434
     mock:
       enabled: true
-      supported-models: mock-fast,mock-slow,qwen2.5-coder:7b
+      supported-models: mock-fast,mock-slow
       fail-rate: 0.0
       latency-ms: 0

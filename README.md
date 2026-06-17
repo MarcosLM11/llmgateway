@@ -8,3 +8,16 @@ Configuración externalizada con @ConfigurationProperties.
 Spring Boot 4.1 + Java 26 + Jackson 3 sobre tools.jackson.
 "API keys stored as plaintext for demo purposes; production should hash with Argon2id"
 API keys plaintext, sin timing-safe compare, principal como String (futuro: clase tipada).
+
+
+
+
+Anota en el README como deuda técnica de Fase 3:
+
+API keys plaintext en YAML (producción: hash con Argon2id o BCrypt).
+String.equals para comparación de keys (timing attack; producción: MessageDigest.isEqual).
+Principal como String tenantId (evolución: clase tipada AuthenticatedTenant).
+Campo enabled de RateLimitProperties sin uso (decisión pendiente: chequearlo en el filter o usar @ConditionalOnProperty en el bean).
+Misma cuota para todos los tenants (Fase 6: cuota por tenant según plan).
+Rate limit en memoria (no distribuido entre instancias; Fase 6: migrar a Redis con bucket4j-redis).
+refillGreedy vs refillIntervally: decisión consciente; greedy es más justo, intervally más predecible.

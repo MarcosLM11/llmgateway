@@ -38,7 +38,7 @@ public class OpenAiChatMapper {
                 List.of(new OpenAiChoiceDTO(
                         0,
                         new OpenAiMessageDTO(
-                                chatResponse.message().role().name(),
+                                chatResponse.message().role().name().toLowerCase(),
                                 chatResponse.message().content()
                         ),
                         "stop"
