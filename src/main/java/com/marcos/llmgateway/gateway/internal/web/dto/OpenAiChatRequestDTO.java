@@ -1,4 +1,4 @@
-package com.marcos.llmgateway.gateway.internal.web;
+package com.marcos.llmgateway.gateway.internal.web.dto;
 
 import java.util.List;
 

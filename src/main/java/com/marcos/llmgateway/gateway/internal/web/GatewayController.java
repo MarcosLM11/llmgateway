@@ -2,6 +2,9 @@ package com.marcos.llmgateway.gateway.internal.web;
 
 import com.marcos.llmgateway.gateway.RoutingStrategy;
 import com.marcos.llmgateway.gateway.internal.ChatService;
+import com.marcos.llmgateway.gateway.internal.exceptions.InvalidStrategyException;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatRequestDTO;
+import com.marcos.llmgateway.gateway.internal.web.dto.OpenAiChatResponseDTO;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,6 +37,10 @@ public class GatewayController {
         if (strategy == null || strategy.isBlank()) {
             return RoutingStrategy.SEQUENTIAL_FALLBACK;
         }
-        return RoutingStrategy.valueOf(strategy.trim().toUpperCase().replace('-','_'));
+        try {
+            return RoutingStrategy.valueOf(strategy.trim().toUpperCase().replace('-', '_'));
+        } catch (IllegalArgumentException e) {
+            throw new InvalidStrategyException("Invalid strategy header value: " + strategy);
+        }
     }
 }

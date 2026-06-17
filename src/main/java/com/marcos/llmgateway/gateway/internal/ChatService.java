@@ -4,6 +4,8 @@ import com.marcos.llmgateway.gateway.ChatRequest;
 import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.LlmProvider;
 import com.marcos.llmgateway.gateway.ProviderException;
+import com.marcos.llmgateway.gateway.internal.exceptions.AllProvidersFailedException;
+import com.marcos.llmgateway.gateway.internal.exceptions.NoProviderForModelException;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;

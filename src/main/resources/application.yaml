@@ -2,6 +2,10 @@ spring:
   application:
     name: llmgateway
 
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
+
 gateway:
   providers:
     ollama:

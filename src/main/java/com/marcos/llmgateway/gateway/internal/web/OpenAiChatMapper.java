@@ -5,6 +5,8 @@ import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.Message;
 import com.marcos.llmgateway.gateway.RoutingStrategy;
 import com.marcos.llmgateway.gateway.Role;
+import com.marcos.llmgateway.gateway.internal.web.dto.*;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
