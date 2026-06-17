@@ -10,4 +10,4 @@ gateway:
       enabled: true
       supported-models: mock-fast,mock-slow,qwen2.5-coder:7b
       fail-rate: 0.0
-      latency-ms: 0
+      latency-ms: 5000

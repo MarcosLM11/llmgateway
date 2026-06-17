@@ -33,6 +33,7 @@ public class MockLlmProvider implements LlmProvider {
                 Thread.sleep(mockProperties.latencyMs());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                throw new ProviderException("Mock task cancelled during sleep", e);
             }
         }
 
@@ -49,6 +50,7 @@ public class MockLlmProvider implements LlmProvider {
                         .sum()/4,
                 10,
                 request.model());
+        System.out.println("[MOCK] task finished at " + System.currentTimeMillis() + " for model: " + request.model());
         return new ChatResponse(message, usage);
     }
 
