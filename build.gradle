@@ -20,6 +20,7 @@ repositories {
 
 ext {
 	set('springModulithVersion', "2.1.0")
+	set('springAiVersion', "2.0.0")
 }
 
 dependencies {
@@ -29,12 +30,12 @@ dependencies {
 	implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
 	implementation 'com.bucket4j:bucket4j_jdk17-caffeine:8.19.0'
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
-	implementation 'org.springframework.boot:spring-boot-starter' +
-			'-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-flyway'
-	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.flywaydb:flyway-database-postgresql'
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.15.Final:osx-aarch_64'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -43,6 +44,7 @@ dependencies {
 dependencyManagement {
 	imports {
 		mavenBom "org.springframework.modulith:spring-modulith-bom:${springModulithVersion}"
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
 	}
 }
 
