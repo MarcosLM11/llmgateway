@@ -1,10 +1,20 @@
 spring:
   application:
     name: llmgateway
+  datasource:
+    url: jdbc:postgresql://localhost:5432/llmgateway
+    username: llmgateway
+    password: llmgateway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 logging:
   pattern:
     level: "%5p [%X{requestId:-}] [%X{tenantId:-}]"
+  level:
+    org.flywaydb: INFO
+    org.springframework.boot.autoconfigure.flyway: DEBUG
 
 gateway:
   rate-limit:

@@ -16,6 +16,9 @@ services:
       - postgres
     environment:
       GATEWAY_PROVIDERS_OLLAMA_BASE_URL: http://host.docker.internal:11434
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/llmgateway
+      SPRING_DATASOURCE_USERNAME: llmgateway
+      SPRING_DATASOURCE_PASSWORD: llmgateway
       # más env vars cuando integremos postgres en Fase 4
     ports:
       - "8080:8080"
