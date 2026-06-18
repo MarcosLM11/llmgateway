@@ -1,27 +1,62 @@
 package com.marcos.llmgateway.gateway.internal;
 
+import com.marcos.llmgateway.cache.SemanticCache;
 import com.marcos.llmgateway.gateway.ChatRequest;
 import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.LlmProvider;
 import com.marcos.llmgateway.gateway.ProviderException;
 import com.marcos.llmgateway.gateway.internal.exceptions.AllProvidersFailedException;
 import com.marcos.llmgateway.gateway.internal.exceptions.NoProviderForModelException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.StructuredTaskScope;
+import java.util.stream.Collectors;
 
 @Service
 @SuppressWarnings("preview")
 public class ChatService {
 
-    private final List<LlmProvider> llmProviders;
+    private static final Logger log = LoggerFactory.getLogger(ChatService.class);
 
-    public ChatService(List<LlmProvider> llmProviders) {
+    private final List<LlmProvider> llmProviders;
+    private final SemanticCache cache;
+
+    public ChatService(List<LlmProvider> llmProviders,  SemanticCache cache) {
         this.llmProviders = llmProviders;
+        this.cache = cache;
     }
 
     public ChatResponse chat(ChatRequest request) {
+        boolean cacheable = cacheEligible(request);
+        String prompt = cacheable ? promptOf(request) : null;
+
+        if (cacheable) {
+            Optional<ChatResponse> cached = cache.lookup(request.tenantId(), prompt);
+            if (cached.isPresent()) {
+                log.info("Cache HIT for tenant={}", request.tenantId());
+                return cached.get();
+            }
+        }
+
+        ChatResponse response = executeWithProviders(request);
+
+        if (cacheable) {
+            cache.store(request.tenantId(), prompt, response);
+            log.info("Cache MISS for tenant={}, stored", request.tenantId());
+        }
+
+        return response;
+    }
+
+    private boolean cacheEligible(ChatRequest request) {
+        return request.temperature() == null || request.temperature() <= 0.2;
+    }
+
+    private ChatResponse executeWithProviders(ChatRequest request) {
         var candidates = llmProviders.stream()
                 .filter(p -> p.supports(request.model()))
                 .toList();
@@ -61,8 +96,8 @@ public class ChatService {
             for (var candidate : candidates) {
                 subtasks.add(scope.fork(() -> candidate.chat(request)));
             }
-
             return scope.join();
+
         } catch (StructuredTaskScope.FailedException _) {
             var aggregated = new AllProvidersFailedException(
                     "All " + candidates.size() + " providers failed for model: " + request.model()
@@ -72,9 +107,16 @@ public class ChatService {
                     .map(StructuredTaskScope.Subtask::exception)
                     .forEach(aggregated::addSuppressed);
             throw aggregated;
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Chat execution was interrupted", e);
         }
+    }
+
+    private String promptOf(ChatRequest request) {
+        return request.messages().stream()
+                .map(m -> m.role().name().toLowerCase() + ": " + m.content())
+                .collect(Collectors.joining("\n"));
     }
 }
