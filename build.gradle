@@ -27,14 +27,16 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.modulith:spring-modulith-starter-core'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+
 	implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
 	implementation 'com.bucket4j:bucket4j_jdk17-caffeine:8.19.0'
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
-	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
-	implementation 'org.springframework.boot:spring-boot-flyway'
+
 	implementation 'org.flywaydb:flyway-database-postgresql'
-	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
 	implementation 'org.postgresql:postgresql'
+
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.15.Final:osx-aarch_64'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.modulith:spring-modulith-starter-test'
