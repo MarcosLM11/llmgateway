@@ -11,5 +11,4 @@ public class LlmgatewayApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(LlmgatewayApplication.class, args);
 	}
-
 }

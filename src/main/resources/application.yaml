@@ -18,6 +18,18 @@ spring:
         options:
           model: nomic-embed-text
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
 logging:
   pattern:
     level: "%5p [%X{requestId:-}] [%X{tenantId:-}]"

@@ -31,6 +31,7 @@ public class SecurityConfiguration {
             .httpBasic(AbstractHttpConfigurer::disable)
             .formLogin(AbstractHttpConfigurer::disable)
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth.requestMatchers("/actuator/**").permitAll())
             .authorizeHttpRequests(auth -> auth.anyRequest().authenticated())
             .addFilterBefore(apiKeyFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterAfter(rateLimitFilter, ApiKeyAuthenticationFilter.class)

@@ -35,7 +35,12 @@ dependencies {
 	implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
 
 	implementation 'org.flywaydb:flyway-database-postgresql'
+	implementation 'org.springframework.boot:spring-boot-flyway'
+	implementation 'org.flywaydb:flyway-core'
 	implementation 'org.postgresql:postgresql'
+
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+	implementation 'io.micrometer:micrometer-registry-prometheus'
 
 	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.15.Final:osx-aarch_64'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
