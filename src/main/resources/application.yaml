@@ -26,6 +26,8 @@ logging:
     org.springframework.boot.autoconfigure.flyway: DEBUG
 
 gateway:
+  cache:
+    similarity-threshold: 0.15
   rate-limit:
     enabled: true
     capacity: 10

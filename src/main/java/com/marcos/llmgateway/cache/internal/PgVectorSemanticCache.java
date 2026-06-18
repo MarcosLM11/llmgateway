@@ -12,16 +12,16 @@ import java.util.Optional;
 @Repository
 public class PgVectorSemanticCache implements SemanticCache {
 
-    private static final double SIMILARITY_THRESHOLD = 0.05;
-
     private final JdbcTemplate jdbcTemplate;
     private final EmbeddingService embeddingService;
     private final ObjectMapper objectMapper;
+    private final CacheProperties cacheProperties;
 
-    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper) {
+    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper,  CacheProperties cacheProperties) {
         this.jdbcTemplate = jdbcTemplate;
         this.embeddingService = embeddingService;
         this.objectMapper = objectMapper;
+        this.cacheProperties = cacheProperties;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class PgVectorSemanticCache implements SemanticCache {
                         throw new IllegalStateException("Failed to deserialize cached response", e);
                     }
                 },
-                vector, tenantId, vector, SIMILARITY_THRESHOLD
+                vector, tenantId, vector, cacheProperties.similarityThreshold()
         );
     }
 

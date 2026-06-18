@@ -21,3 +21,14 @@ Campo enabled de RateLimitProperties sin uso (decisión pendiente: chequearlo en
 Misma cuota para todos los tenants (Fase 6: cuota por tenant según plan).
 Rate limit en memoria (no distribuido entre instancias; Fase 6: migrar a Redis con bucket4j-redis).
 refillGreedy vs refillIntervally: decisión consciente; greedy es más justo, intervally más predecible.
+
+
+Deuda técnica de Fase 4 para el README:
+
+Header X-Gateway-Cache: bypass no implementado (decisión 4 pendiente).
+Umbral 0.05 hardcoded (movible a application.yml como property).
+Sin TTL en la caché (las entradas viven para siempre; producción: TTL o LRU eviction).
+Sin métricas de hit/miss (Fase 5 con Micrometer).
+Sin batch de invalidación (admin endpoint para limpiar caché de un tenant).
+Embedding dimensions hardcoded a 768 (cambiar modelo = cambiar schema).
+Concatenación de mensajes en el prompt es ingenua: no tiene en cuenta system messages, históricos largos, etc.
