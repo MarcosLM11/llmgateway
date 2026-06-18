@@ -4,6 +4,8 @@ import com.marcos.llmgateway.gateway.ChatRequest;
 import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.LlmProvider;
 import com.marcos.llmgateway.gateway.ProviderException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -16,6 +18,7 @@ import static com.marcos.llmgateway.providers.ollama.OllamaMapper.toDomain;
 @Component
 public class OllamaLlmProvider implements LlmProvider {
 
+    private static final Logger log = LoggerFactory.getLogger(OllamaLlmProvider.class);
     private final RestClient restClient;
 
     public OllamaLlmProvider(RestClient restClient) {
@@ -33,6 +36,7 @@ public class OllamaLlmProvider implements LlmProvider {
                     .body(OllamaChatResponseDTO.class);
             return toDomain(ollamaResponse);
         } catch (RestClientException e) {
+            log.error("Error in Ollama response" , e);
             throw new ProviderException("Ollama call failed: " + e.getMessage(), e);
         }
     }
@@ -44,5 +48,10 @@ public class OllamaLlmProvider implements LlmProvider {
                 || model.startsWith("mistral")
                 || model.startsWith("phi")
                 || model.startsWith("gemma");
+    }
+
+    @Override
+    public String name() {
+        return "ollama";
     }
 }

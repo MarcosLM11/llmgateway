@@ -3,7 +3,7 @@ package com.marcos.llmgateway.cache.internal;
 public class StubEmbeddingService extends EmbeddingService {
 
     public StubEmbeddingService() {
-        super(null);  // no necesitamos el EmbeddingModel real
+        super(null,null);  // no necesitamos el EmbeddingModel real
     }
 
     @Override

@@ -57,4 +57,9 @@ public class MockLlmProvider implements LlmProvider {
     public boolean supports(String model) {
         return mockProperties.supportedModels().contains(model);
     }
+
+    @Override
+    public String name() {
+        return "mock";
+    }
 }

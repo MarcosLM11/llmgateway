@@ -2,6 +2,9 @@ package com.marcos.llmgateway.cache.internal;
 
 import com.marcos.llmgateway.cache.SemanticCache;
 import com.marcos.llmgateway.gateway.ChatResponse;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import tools.jackson.databind.ObjectMapper;
@@ -15,13 +18,24 @@ public class PgVectorSemanticCache implements SemanticCache {
     private final JdbcTemplate jdbcTemplate;
     private final EmbeddingService embeddingService;
     private final ObjectMapper objectMapper;
+    private final MeterRegistry meterRegistry;
     private final CacheProperties cacheProperties;
 
-    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper,  CacheProperties cacheProperties) {
+    private Counter cacheHits;
+    private Counter cacheMisses;
+
+    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper,  CacheProperties cacheProperties, MeterRegistry meterRegistry) {
         this.jdbcTemplate = jdbcTemplate;
         this.embeddingService = embeddingService;
         this.objectMapper = objectMapper;
         this.cacheProperties = cacheProperties;
+        this.meterRegistry = meterRegistry;
+    }
+
+    @PostConstruct
+    void registerMeters() {
+        this.cacheHits = Counter.builder("llmgateway.cache.lookups").tag("result","hit").register(meterRegistry);
+        this.cacheMisses = Counter.builder("llmgateway.cache.lookups").tag("result","miss").register(meterRegistry);
     }
 
     @Override
@@ -37,7 +51,7 @@ public class PgVectorSemanticCache implements SemanticCache {
                 LIMIT 1
                 """;
 
-        return jdbcTemplate.query(sql,
+        Optional<ChatResponse> result = jdbcTemplate.query(sql,
                 rs -> {
                     if (!rs.next()) return Optional.empty();
                     String json = rs.getString("response");
@@ -49,6 +63,14 @@ public class PgVectorSemanticCache implements SemanticCache {
                 },
                 vector, tenantId, vector, cacheProperties.similarityThreshold()
         );
+
+        if (result.isPresent()) {
+            cacheHits.increment();
+        } else {
+            cacheMisses.increment();
+        }
+
+        return result;
     }
 
     @Override
