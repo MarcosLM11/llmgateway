@@ -28,6 +28,15 @@ services:
       - "4318:4318"   # OTLP HTTP receiver
       - "4317:4317"   # OTLP gRPC receiver (por si acaso)
 
+  loki:
+    image: grafana/loki:latest
+    command: -config.file=/etc/loki/loki.yaml
+    volumes:
+      - ./docker/loki/loki.yaml:/etc/loki/loki.yaml:ro
+      - loki-data:/loki
+    ports:
+      - "3100:3100"
+
 #  llmgateway:
 #    build: .
 #    depends_on:
@@ -46,3 +55,4 @@ services:
 volumes:
   postgres-data:
   tempo-data:
+  loki-data:

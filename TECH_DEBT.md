@@ -91,3 +91,16 @@ intentionally not done.
 
 - Only REST is exposed today. Phase 7 will add a gRPC endpoint and a
   client library.
+
+
+
+Sampling al 100%: en producción se baja (típico 5-10%).
+Endpoint OTLP hardcoded a localhost:4318. Para Docker Compose se sobreescribe con env var.
+Sin instrumentación manual extra: solo lo que Spring Boot auto-instrumenta. Spans custom (ej. "semantic-cache-lookup") se podrían añadir más adelante.
+
+
+
+Appender OTLP en versión alpha. Cuando OTel publique GA del logback-appender, actualizar.
+Loki single-instance, sin retention configurada. Producción: cluster o ingester separado, retention 30-90d.
+service_name es el único label real en Loki. Resto va como structured metadata. Consciente: evita explosión de cardinalidad. Para queries por tenant: {service_name="llmgateway"} | tenantId="alice-corp" (filtro post-stream, no índice).
+Sin sampling de logs. En producción podría sobrecargar Loki, considerar filtrado por level o muestreo.
