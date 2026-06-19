@@ -29,13 +29,34 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        llmgateway.provider.latency: true
+        llmgateway.embedding.latency: true
+  tracing:
+    enabled: true
+    sampling:
+        probability: 1.0
+    baggage:
+      correlation:
+        enabled: true
+        fields:
+          - traceId
+          - spanId
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
 
 logging:
   pattern:
-    level: "%5p [%X{requestId:-}] [%X{tenantId:-}]"
+    level: "%5p [%X{requestId:-}] [%X{tenantId:-}] [%X{traceId:-},%X{spanId:-}]"
   level:
     org.flywaydb: INFO
     org.springframework.boot.autoconfigure.flyway: DEBUG
+    io.opentelemetry: DEBUG
+    io.opentelemetry.exporter.otlp: DEBUG
 
 gateway:
   cache:
