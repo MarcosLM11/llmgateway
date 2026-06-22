@@ -6,15 +6,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String TENANT_ID_KEY = "tenantId";
     private static final String BEARER_PREFIX = "Bearer ";
+    private static final String ADMIN_KEY = "sk-admin-master";
     private final SecurityProperties securityProperties;
 
     public ApiKeyAuthenticationFilter(SecurityProperties securityProperties) {
@@ -31,10 +36,14 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
             String key = authHeader.substring(BEARER_PREFIX.length()).trim();
             securityProperties.findByKey(key).ifPresent(apiKey -> {
+                List<GrantedAuthority> authorities = List.of();
+                if (Objects.equals(apiKey.key(), ADMIN_KEY)) {
+                   authorities  = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                }
                 var auth = new UsernamePasswordAuthenticationToken(
                         apiKey.tenantId(),
                         null,
-                        List.of()
+                        authorities
                 );
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 MDC.put(TENANT_ID_KEY, apiKey.tenantId());

@@ -94,6 +94,9 @@ gateway:
         tenant-id: alice-corp
       - key: sk-test-bob
         tenant-id: bob-startup
+      - key: sk-admin-master
+        tenant: admin
+        admin: true
   providers:
     ollama:
       base-url: http://localhost:11434
