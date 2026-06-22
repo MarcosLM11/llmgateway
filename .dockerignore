@@ -1,6 +1,11 @@
-.gradle
-build
-.idea
-*.iml
-node_modules
-.git
+**
+!gradlew
+!build.gradle
+!settings.gradle
+!gradle/
+!gradle/wrapper/
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+!src/
+!src/**
+!Dockerfile

@@ -80,17 +80,25 @@ services:
 #  llmgateway:
 #    build: .
 #    depends_on:
-#      - postgres
+#      postgres:
+#        condition: service_healthy
 #    environment:
 #      GATEWAY_PROVIDERS_OLLAMA_BASE_URL: http://host.docker.internal:11434
 #      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/llmgateway
 #      SPRING_DATASOURCE_USERNAME: llmgateway
 #      SPRING_DATASOURCE_PASSWORD: llmgateway
-#      # más env vars cuando integremos postgres en Fase 4
 #    ports:
 #      - "8080:8080"
 #    extra_hosts:
 #      - "host.docker.internal:host-gateway"
+#    # distroless has no shell/curl, so healthcheck uses the Docker host curl.
+#    # Requires Docker Desktop ≥ 4.x or a curl sidecar. Adjust if using K8s probes.
+#    healthcheck:
+#      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health | grep UP || exit 1"]
+#      interval: 30s
+#      timeout: 5s
+#      start_period: 60s
+#      retries: 3
 
 volumes:
   postgres-data:
