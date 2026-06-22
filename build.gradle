@@ -48,7 +48,11 @@ dependencies {
 
 	implementation 'org.springframework.boot:spring-boot-starter-kafka'
 
-	runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.15.Final:osx-aarch_64'
+	// macOS-only DNS resolver — suppresses Netty warnings on Apple Silicon during local dev.
+	// Excluded from Docker builds (Linux containers don't need it and it just adds dead weight).
+	if (System.getenv('DOCKER_BUILD') != 'true') {
+		runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.2.15.Final:osx-aarch_64'
+	}
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
 	testImplementation 'org.springframework.modulith:spring-modulith-starter-test'

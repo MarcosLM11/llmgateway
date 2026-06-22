@@ -71,8 +71,9 @@ intentionally not done.
   GA.
 - **Spring Boot 4.x is in SNAPSHOT.** Versions may shift; some BOMs (e.g.
   Testcontainers) had to be pinned explicitly to work around BOM gaps.
-- **Image tag `bellsoft/liberica-openjdk-debian:26-cds` is not pinned to a
-  patch version.** Future minor JDK releases may break the preview API.
+- **Docker runtime now uses a pinned JDK base and a custom `jlink`
+  runtime.** Preview features still depend on Java 26, so patch-level
+  upgrades should be validated before release.
 - **No CI pipeline.** Tests run only locally.
 - **No healthcheck on the `llmgateway` Compose service.** Other services
   depending on it cannot wait properly.
