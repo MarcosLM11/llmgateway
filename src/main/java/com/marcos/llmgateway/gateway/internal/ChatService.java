@@ -7,6 +7,8 @@ import com.marcos.llmgateway.gateway.LlmProvider;
 import com.marcos.llmgateway.gateway.ProviderException;
 import com.marcos.llmgateway.gateway.internal.exceptions.AllProvidersFailedException;
 import com.marcos.llmgateway.gateway.internal.exceptions.NoProviderForModelException;
+import com.marcos.llmgateway.metering.UsageEvent;
+import com.marcos.llmgateway.metering.UsageEventPublisher;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -31,16 +33,18 @@ public class ChatService {
     private final List<LlmProvider> llmProviders;
     private final SemanticCache cache;
     private final MeterRegistry meterRegistry;
+    private final UsageEventPublisher usageEventPublisher;
 
     private final Map<String, Timer> successTimers = new HashMap<>();
     private final Map<String, Timer> failureTimers = new HashMap<>();
     private DistributionSummary tokensPrompt;
     private DistributionSummary tokensCompletion;
 
-    public ChatService(List<LlmProvider> llmProviders,  SemanticCache cache,  MeterRegistry meterRegistry) {
+    public ChatService(List<LlmProvider> llmProviders,  SemanticCache cache,  MeterRegistry meterRegistry, UsageEventPublisher usageEventPublisher) {
         this.llmProviders = llmProviders;
         this.cache = cache;
         this.meterRegistry = meterRegistry;
+        this.usageEventPublisher = usageEventPublisher;
     }
 
     @PostConstruct
@@ -65,6 +69,7 @@ public class ChatService {
     }
 
     public ChatResponse chat(ChatRequest request) {
+        long start = System.nanoTime();
         var cacheable = cacheEligible(request);
         var prompt = cacheable ? promptOf(request) : null;
 
@@ -72,40 +77,41 @@ public class ChatService {
             Optional<ChatResponse> cached = cache.lookup(request.tenantId(), prompt);
             if (cached.isPresent()) {
                 log.info("Cache HIT for tenant={}", request.tenantId());
-                return cached.get();
+                var response = cached.get();
+                emitUsageEvent(request, response, "cache", true, start);
+                return response;
             }
         }
 
-        ChatResponse response = executeWithProviders(request);
+        ChatOutcomeDTO outcome = executeWithProviders(request);
 
         if (cacheable) {
-            cache.store(request.tenantId(), prompt, response);
+            cache.store(request.tenantId(), prompt, outcome.response());
             log.info("Cache MISS for tenant={}, stored", request.tenantId());
         }
 
-        return response;
+        emitUsageEvent(request, outcome.response(), outcome.providerName(), false, start);
+        return outcome.response();
     }
 
     private boolean cacheEligible(ChatRequest request) {
         return request.temperature() == null || request.temperature() <= 0.2;
     }
 
-    private ChatResponse executeWithProviders(ChatRequest request) {
+    private ChatOutcomeDTO executeWithProviders(ChatRequest request) {
         var candidates = llmProviders.stream()
                 .filter(p -> p.supports(request.model()))
                 .toList();
-
         if (candidates.isEmpty()) {
             throw new NoProviderForModelException("No provider supports model: " + request.model());
         }
-
         return switch (request.strategy()) {
             case SEQUENTIAL_FALLBACK -> executeSequential(candidates, request);
             case PARALLEL_RACE -> executeRace(candidates, request);
         };
     }
 
-    private ChatResponse executeSequential(List<LlmProvider> candidates, ChatRequest request) {
+    private ChatOutcomeDTO executeSequential(List<LlmProvider> candidates, ChatRequest request) {
         var failures = new ArrayList<ProviderException>();
 
         for (var candidate : candidates) {
@@ -123,15 +129,13 @@ public class ChatService {
         throw aggregated;
     }
 
-    private ChatResponse executeRace(List<LlmProvider> candidates, ChatRequest request) {
-        List<StructuredTaskScope.Subtask<ChatResponse>> subtasks = new ArrayList<>();
-
-        try (var scope = StructuredTaskScope.open(StructuredTaskScope.Joiner.<ChatResponse>anySuccessfulOrThrow())) {
+    private ChatOutcomeDTO executeRace(List<LlmProvider> candidates, ChatRequest request) {
+        List<StructuredTaskScope.Subtask<ChatOutcomeDTO>> subtasks = new ArrayList<>();
+        try (var scope = StructuredTaskScope.open(StructuredTaskScope.Joiner.<ChatOutcomeDTO>anySuccessfulOrThrow())) {
             for (var candidate : candidates) {
                 subtasks.add(scope.fork(() -> measuredCall(candidate, request)));
             }
             return scope.join();
-
         } catch (StructuredTaskScope.FailedException _) {
             var aggregated = new AllProvidersFailedException(
                     "All " + candidates.size() + " providers failed for model: " + request.model()
@@ -141,7 +145,6 @@ public class ChatService {
                     .map(StructuredTaskScope.Subtask::exception)
                     .forEach(aggregated::addSuppressed);
             throw aggregated;
-
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Chat execution was interrupted", e);
@@ -149,18 +152,41 @@ public class ChatService {
     }
 
     // Helper para medir la llamada a un provider:
-    private ChatResponse measuredCall(LlmProvider provider, ChatRequest request) {
+    private ChatOutcomeDTO measuredCall(LlmProvider provider, ChatRequest request) {
         Timer.Sample sample = Timer.start(meterRegistry);
         try {
             var response = provider.chat(request);
             tokensPrompt.record(response.usage().promptTokens());
             tokensCompletion.record(response.usage().completionTokens());
             sample.stop(successTimers.get(provider.name()));
-            return response;
+            return new ChatOutcomeDTO(response, provider.name());
         } catch (RuntimeException e) {
             sample.stop(failureTimers.get(provider.name()));
             throw e;
         }
+    }
+
+    private void emitUsageEvent(ChatRequest request, ChatResponse response, String providerName, boolean cacheHit, long startNanos) {
+        long latencyMs = (System.nanoTime() - startNanos) / 1_000_000;
+        String requestId = org.slf4j.MDC.get("requestId");
+
+        if (requestId == null) {
+            requestId = java.util.UUID.randomUUID().toString();
+        }
+
+        var event = new UsageEvent(
+                requestId,
+                request.tenantId(),
+                request.model(),
+                providerName,
+                response.usage().promptTokens(),
+                response.usage().completionTokens(),
+                cacheHit,
+                latencyMs,
+                java.time.Instant.now()
+        );
+
+        usageEventPublisher.publish(event);
     }
 
     private String promptOf(ChatRequest request) {

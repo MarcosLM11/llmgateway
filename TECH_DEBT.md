@@ -110,3 +110,5 @@ Dashboard mínimo: 4 paneles. Producción tendría dashboards separados por sub-
 Anonymous viewer con role Viewer: bien para portfolio, en producción requiere auth real (OAuth, LDAP, etc.).
 Sin alerting configurado: en producción definirías alertas en Grafana (cache hit rate por debajo de X, latencia P99 por encima de Y).
 Service map de Tempo deshabilitado por defecto: requiere metrics_generator en Tempo config, que quitamos por simplificar arranque.
+
+Producción podría publicar también FailedUsageEvent para tracking de errores. Por ahora solo success path.
