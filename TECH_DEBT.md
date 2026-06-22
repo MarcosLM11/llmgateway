@@ -104,3 +104,9 @@ Appender OTLP en versión alpha. Cuando OTel publique GA del logback-appender, a
 Loki single-instance, sin retention configurada. Producción: cluster o ingester separado, retention 30-90d.
 service_name es el único label real en Loki. Resto va como structured metadata. Consciente: evita explosión de cardinalidad. Para queries por tenant: {service_name="llmgateway"} | tenantId="alice-corp" (filtro post-stream, no índice).
 Sin sampling de logs. En producción podría sobrecargar Loki, considerar filtrado por level o muestreo.
+
+
+Dashboard mínimo: 4 paneles. Producción tendría dashboards separados por sub-sistema (cache, providers, embedding, JVM, HTTP).
+Anonymous viewer con role Viewer: bien para portfolio, en producción requiere auth real (OAuth, LDAP, etc.).
+Sin alerting configurado: en producción definirías alertas en Grafana (cache hit rate por debajo de X, latencia P99 por encima de Y).
+Service map de Tempo deshabilitado por defecto: requiere metrics_generator en Tempo config, que quitamos por simplificar arranque.
