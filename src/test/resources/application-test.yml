@@ -1,0 +1,38 @@
+spring:
+  flyway:
+    enabled: true
+  kafka:
+    consumer:
+      auto-offset-reset: earliest
+
+gateway:
+  security:
+    api-keys:
+      - key: sk-test-alice
+        tenant-id: alice-corp
+        admin: false
+      - key: sk-admin-master
+        tenant-id: admin
+        admin: true
+  providers:
+    mock:
+      enabled: true
+      supported-models: mock-fast,mock-slow
+      fail-rate: 0.0
+      latency-ms: 0
+
+cache:
+  similarity-threshold: 0.15
+  embedding-model: nomic-embed-text
+
+# Desactivar OTLP exporters para tests (evita ruido por no encontrar Tempo/Loki)
+management:
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          enabled: false
+    logging:
+      export:
+        otlp:
+          enabled: false

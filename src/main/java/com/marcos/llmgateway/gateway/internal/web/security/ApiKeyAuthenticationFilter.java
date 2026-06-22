@@ -19,7 +19,6 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
 
     public static final String TENANT_ID_KEY = "tenantId";
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final String ADMIN_KEY = "sk-admin-master";
     private final SecurityProperties securityProperties;
 
     public ApiKeyAuthenticationFilter(SecurityProperties securityProperties) {
@@ -36,10 +35,9 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith(BEARER_PREFIX)) {
             String key = authHeader.substring(BEARER_PREFIX.length()).trim();
             securityProperties.findByKey(key).ifPresent(apiKey -> {
-                List<GrantedAuthority> authorities = List.of();
-                if (Objects.equals(apiKey.key(), ADMIN_KEY)) {
-                   authorities  = List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                }
+                List<GrantedAuthority> authorities = apiKey.admin()
+                        ? List.of(new SimpleGrantedAuthority("ROLE_ADMIN"))
+                        : List.of();
                 var auth = new UsernamePasswordAuthenticationToken(
                         apiKey.tenantId(),
                         null,
