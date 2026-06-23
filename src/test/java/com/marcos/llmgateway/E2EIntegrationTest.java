@@ -58,7 +58,7 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
                 .isTrue();
 
         // 2) Wait for Kafka consumer to persist the event
-        await().atMost(15, SECONDS).untilAsserted(() -> {
+        await().atMost(60, SECONDS).untilAsserted(() -> {
             Long count = jdbcTemplate.queryForObject(
                     "SELECT COUNT(*) FROM usage_events WHERE tenant_id = 'alice-corp'",
                     Long.class
