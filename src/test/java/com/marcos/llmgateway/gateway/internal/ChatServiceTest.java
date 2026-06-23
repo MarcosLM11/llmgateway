@@ -26,6 +26,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import tools.jackson.databind.json.JsonMapper;
 
 class ChatServiceTest {
 
@@ -52,7 +53,8 @@ class ChatServiceTest {
                 List.of(providerA, providerB),
                 cache,
                 new SimpleMeterRegistry(),
-                publisher
+                publisher,
+                new JsonMapper()  // ← Jackson 3 default mapper
         );
         service.registerMeters();
         return service;
@@ -78,7 +80,8 @@ class ChatServiceTest {
     @Test
     void cacheHit_returnsCachedResponseWithoutCallingProvider() {
         ChatResponse cached = responseFrom("cache");
-        when(cache.lookup(any(), any())).thenReturn(Optional.of(cached));
+        String json = new tools.jackson.databind.json.JsonMapper().writeValueAsString(cached);
+        when(cache.lookup(any(), any())).thenReturn(Optional.of(json));
 
         var result = newService().chat(request(RoutingStrategy.SEQUENTIAL_FALLBACK));
 
@@ -171,7 +174,8 @@ class ChatServiceTest {
 
     @Test
     void cacheHit_emitsUsageEventWithCacheProvider() {
-        when(cache.lookup(any(), any())).thenReturn(Optional.of(responseFrom("cache")));
+        String json = new tools.jackson.databind.json.JsonMapper().writeValueAsString(responseFrom("cache"));
+        when(cache.lookup(any(), any())).thenReturn(Optional.of(json));
 
         newService().chat(request(RoutingStrategy.SEQUENTIAL_FALLBACK));
 

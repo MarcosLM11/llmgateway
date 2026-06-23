@@ -1,32 +1,25 @@
 package com.marcos.llmgateway.cache.internal;
 
+import com.marcos.llmgateway.AbstractIntegrationTest;
+import com.marcos.llmgateway.cache.EmbeddingService;
 import com.marcos.llmgateway.cache.SemanticCache;
-import com.marcos.llmgateway.gateway.*;
+import com.marcos.llmgateway.gateway.ChatResponse;
+import com.marcos.llmgateway.gateway.Message;
+import com.marcos.llmgateway.gateway.Role;
+import com.marcos.llmgateway.gateway.Usage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest
-@Testcontainers
-class PgVectorSemanticCacheIT {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("pgvector/pgvector:pg17").asCompatibleSubstituteFor("postgres")
-    );
+@Import(PgVectorSemanticCacheIT.TestConfig.class)
+class PgVectorSemanticCacheIT extends AbstractIntegrationTest {
 
     @Autowired
     private SemanticCache cache;
@@ -50,35 +43,35 @@ class PgVectorSemanticCacheIT {
 
     @Test
     void cache_miss_when_empty() {
-        Optional<ChatResponse> result = cache.lookup("tenant-a", "Hello world");
+        Optional<String> result = cache.lookup("tenant-a", "Hello world");
         assertThat(result).isEmpty();
     }
 
     @Test
     void cache_hit_for_identical_prompt() {
-        ChatResponse response = sampleResponse("Hi there");
-        cache.store("tenant-a", "Hello world", response);
+        String json = "{\"message\":{\"role\":\"ASSISTANT\",\"content\":\"Hi there\"},\"usage\":{\"promptTokens\":5,\"completionTokens\":10,\"modelUsed\":\"mock-model\"}}";
+        cache.store("tenant-a", "Hello world", json);
 
-        Optional<ChatResponse> result = cache.lookup("tenant-a", "Hello world");
+        Optional<String> result = cache.lookup("tenant-a", "Hello world");
 
         assertThat(result).isPresent();
-        assertThat(result.get().message().content()).isEqualTo("Hi there");
+        assertThat(result.get()).contains("Hi there");
     }
 
     @Test
     void cache_miss_when_prompts_unrelated() {
-        cache.store("tenant-a", "Hello world", sampleResponse("Hi"));
+        cache.store("tenant-a", "Hello world", "{\"any\":\"json\"}");
 
-        Optional<ChatResponse> result = cache.lookup("tenant-a", "TOTALLY UNRELATED");
+        Optional<String> result = cache.lookup("tenant-a", "TOTALLY UNRELATED");
 
         assertThat(result).isEmpty();
     }
 
     @Test
     void cache_isolated_per_tenant() {
-        cache.store("tenant-a", "Hello world", sampleResponse("Response for A"));
+        cache.store("tenant-a", "Hello world", "{\"content\":\"for A\"}");
 
-        Optional<ChatResponse> result = cache.lookup("tenant-b", "Hello world");
+        Optional<String> result = cache.lookup("tenant-b", "Hello world");
 
         assertThat(result).isEmpty();
     }

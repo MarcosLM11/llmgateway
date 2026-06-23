@@ -1,0 +1,1 @@
+ALTER TABLE semantic_cache_entries DROP COLUMN model_used;

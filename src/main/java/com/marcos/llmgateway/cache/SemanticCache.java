@@ -5,7 +5,6 @@ import java.util.Optional;
 
 public interface SemanticCache {
 
-    Optional<ChatResponse> lookup(String tenantId, String prompt);
-
-    void store(String tenantId, String prompt, ChatResponse response);
+    Optional<String> lookup(String tenantId, String prompt);
+    void store(String tenantId, String prompt, String response);
 }

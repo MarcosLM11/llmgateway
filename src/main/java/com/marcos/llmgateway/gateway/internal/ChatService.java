@@ -16,6 +16,8 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -34,17 +36,19 @@ public class ChatService {
     private final SemanticCache cache;
     private final MeterRegistry meterRegistry;
     private final UsageEventPublisher usageEventPublisher;
+    private final ObjectMapper objectMapper;
 
     private final Map<String, Timer> successTimers = new HashMap<>();
     private final Map<String, Timer> failureTimers = new HashMap<>();
     private DistributionSummary tokensPrompt;
     private DistributionSummary tokensCompletion;
 
-    public ChatService(List<LlmProvider> llmProviders,  SemanticCache cache,  MeterRegistry meterRegistry, UsageEventPublisher usageEventPublisher) {
+    public ChatService(List<LlmProvider> llmProviders,  SemanticCache cache,  MeterRegistry meterRegistry, UsageEventPublisher usageEventPublisher,  ObjectMapper objectMapper) {
         this.llmProviders = llmProviders;
         this.cache = cache;
         this.meterRegistry = meterRegistry;
         this.usageEventPublisher = usageEventPublisher;
+        this.objectMapper = objectMapper;
     }
 
     @PostConstruct
@@ -74,10 +78,10 @@ public class ChatService {
         var prompt = cacheable ? promptOf(request) : null;
 
         if (cacheable) {
-            Optional<ChatResponse> cached = cache.lookup(request.tenantId(), prompt);
+            Optional<String> cached = cache.lookup(request.tenantId(), prompt);
             if (cached.isPresent()) {
                 log.info("Cache HIT for tenant={}", request.tenantId());
-                var response = cached.get();
+                var response = deserialize(cached.get());
                 emitUsageEvent(request, response, "cache", true, start);
                 return response;
             }
@@ -86,12 +90,28 @@ public class ChatService {
         ChatOutcomeDTO outcome = executeWithProviders(request);
 
         if (cacheable) {
-            cache.store(request.tenantId(), prompt, outcome.response());
+            cache.store(request.tenantId(), prompt, serialize(outcome.response()));
             log.info("Cache MISS for tenant={}, stored", request.tenantId());
         }
 
         emitUsageEvent(request, outcome.response(), outcome.providerName(), false, start);
         return outcome.response();
+    }
+
+    private String serialize(ChatResponse response) {
+        try {
+            return objectMapper.writeValueAsString(response);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to serialize ChatResponse for cache", e);
+        }
+    }
+
+    private ChatResponse deserialize(String json) {
+        try {
+            return objectMapper.readValue(json, ChatResponse.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to deserialize ChatResponse from cache", e);
+        }
     }
 
     private boolean cacheEligible(ChatRequest request) {

@@ -25,24 +25,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
-@Testcontainers
 @AutoConfigureTestRestTemplate
-class E2EIntegrationTest {
-
-    @Container
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
-            DockerImageName.parse("pgvector/pgvector:pg17")
-                    .asCompatibleSubstituteFor("postgres")
-    );
-
-    @Container
-    @ServiceConnection
-    static ConfluentKafkaContainer kafka = new ConfluentKafkaContainer(
-            DockerImageName.parse("confluentinc/cp-kafka:7.5.0")
-    );
+class E2EIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
@@ -69,8 +53,6 @@ class E2EIntegrationTest {
                 Map.class
         );
 
-        System.out.println("=== Status: " + chatResponse.getStatusCode());
-        System.out.println("=== Body: " + chatResponse.getBody());
         assertThat(chatResponse.getStatusCode().is2xxSuccessful())
                 .as("Body was: " + chatResponse.getBody())
                 .isTrue();

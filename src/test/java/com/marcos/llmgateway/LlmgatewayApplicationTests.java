@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.modulith.core.ApplicationModules;
 
 @SpringBootTest
-class LlmgatewayApplicationTests {
+class LlmgatewayApplicationTests extends AbstractIntegrationTest {
 
 	@Test
 	void verifiesModuleStructure() {

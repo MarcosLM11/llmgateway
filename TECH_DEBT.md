@@ -113,3 +113,5 @@ Sin alerting configurado: en producción definirías alertas en Grafana (cache h
 Service map de Tempo deshabilitado por defecto: requiere metrics_generator en Tempo config, que quitamos por simplificar arranque.
 
 Producción podría publicar también FailedUsageEvent para tracking de errores. Por ahora solo success path.
+
+Cobertura 78% global, con módulos core (cache, gateway, metering) por encima de 90%. Baja cobertura en mappers/DTOs y código de adapter Ollama (no testeado E2E porque depende de Ollama nativo no disponible en CI). Pendiente: aumentar cobertura en web/ y providers/ollama/ con tests unitarios de mappers.

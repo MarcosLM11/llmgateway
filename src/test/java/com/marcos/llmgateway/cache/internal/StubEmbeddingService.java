@@ -1,10 +1,8 @@
 package com.marcos.llmgateway.cache.internal;
 
-public class StubEmbeddingService extends EmbeddingService {
+import com.marcos.llmgateway.cache.EmbeddingService;
 
-    public StubEmbeddingService() {
-        super(null,null);  // no necesitamos el EmbeddingModel real
-    }
+public class StubEmbeddingService implements EmbeddingService {
 
     @Override
     public float[] embed(String text) {

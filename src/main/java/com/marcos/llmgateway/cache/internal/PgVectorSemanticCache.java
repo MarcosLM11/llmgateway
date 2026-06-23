@@ -1,7 +1,7 @@
 package com.marcos.llmgateway.cache.internal;
 
+import com.marcos.llmgateway.cache.EmbeddingService;
 import com.marcos.llmgateway.cache.SemanticCache;
-import com.marcos.llmgateway.gateway.ChatResponse;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
@@ -24,7 +24,7 @@ public class PgVectorSemanticCache implements SemanticCache {
     private Counter cacheHits;
     private Counter cacheMisses;
 
-    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper,  CacheProperties cacheProperties, MeterRegistry meterRegistry) {
+    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper, CacheProperties cacheProperties, MeterRegistry meterRegistry) {
         this.jdbcTemplate = jdbcTemplate;
         this.embeddingService = embeddingService;
         this.objectMapper = objectMapper;
@@ -39,7 +39,7 @@ public class PgVectorSemanticCache implements SemanticCache {
     }
 
     @Override
-    public Optional<ChatResponse> lookup(String tenantId, String prompt) {
+    public Optional<String> lookup(String tenantId, String prompt) {
         var embedding = embeddingService.embed(prompt);
         var vector = toVectorObject(embedding);
         var sql = """
@@ -51,15 +51,10 @@ public class PgVectorSemanticCache implements SemanticCache {
                 LIMIT 1
                 """;
 
-        Optional<ChatResponse> result = jdbcTemplate.query(sql,
+        Optional<String> result = jdbcTemplate.query(sql,
                 rs -> {
                     if (!rs.next()) return Optional.empty();
-                    String json = rs.getString("response");
-                    try {
-                        return Optional.of(objectMapper.readValue(json, ChatResponse.class));
-                    } catch (Exception e) {
-                        throw new IllegalStateException("Failed to deserialize cached response", e);
-                    }
+                    return Optional.of(rs.getString("response"));
                 },
                 vector, tenantId, vector, cacheProperties.similarityThreshold()
         );
@@ -74,31 +69,25 @@ public class PgVectorSemanticCache implements SemanticCache {
     }
 
     @Override
-    public void store(String tenantId, String prompt, ChatResponse response) {
+    public void store(String tenantId, String prompt, String responseJson) {
         var embedding = embeddingService.embed(prompt);
         var vector = toVectorObject(embedding);
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(response);
-        } catch (Exception e) {
-            throw new IllegalStateException("Failed to serialize response", e);
-        }
 
         var jsonb = new PGobject();
         try {
             jsonb.setType("jsonb");
-            jsonb.setValue(json);
+            jsonb.setValue(responseJson);
         } catch (SQLException e) {
             throw new IllegalStateException(e);
         }
 
         var sql = """
             INSERT INTO semantic_cache_entries
-                (tenant_id, embedding, prompt, response, model_used)
-            VALUES (?, ?, ?, ?, ?)
+                (tenant_id, embedding, prompt, response)
+            VALUES (?, ?, ?, ?)
             """;
 
-        jdbcTemplate.update(sql, tenantId, vector, prompt, jsonb, response.usage().modelUsed());
+        jdbcTemplate.update(sql, tenantId, vector, prompt, jsonb);
     }
 
     private PGobject toVectorObject(float[] embedding) {
