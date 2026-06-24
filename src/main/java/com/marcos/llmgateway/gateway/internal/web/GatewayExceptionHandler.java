@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GatewayExceptionHandler {
 
+    private static final String INVALID_REQUEST_ERROR = "invalid_request_error";
+
     private static final Logger log = LoggerFactory.getLogger(GatewayExceptionHandler.class);
 
     @ExceptionHandler(NoProviderForModelException.class)
@@ -26,7 +28,7 @@ public class GatewayExceptionHandler {
                 requestId,
                 new OpenAiErrorDTO(
                         e.getMessage(),
-                        "invalid_request_error",
+                        INVALID_REQUEST_ERROR,
                         "model",
                         "model_not_found"
                 )
@@ -56,7 +58,7 @@ public class GatewayExceptionHandler {
                 requestId,
                 new OpenAiErrorDTO(
                         e.getMessage(),
-                        "invalid_request_error",
+                        INVALID_REQUEST_ERROR,
                         null,
                         "invalid_input"
                 )
@@ -71,7 +73,7 @@ public class GatewayExceptionHandler {
                 requestId,
                 new OpenAiErrorDTO(
                         e.getMessage(),
-                        "invalid_request_error",
+                        INVALID_REQUEST_ERROR,
                         "X-Gateway-Strategy",
                         "invalid_strategy"
                 )
@@ -86,7 +88,7 @@ public class GatewayExceptionHandler {
                 requestId,
                 new OpenAiErrorDTO(
                         "Invalid JSON in request body",
-                        "invalid_request_error",
+                        INVALID_REQUEST_ERROR,
                         null,
                         "invalid_json"
                 )

@@ -3,6 +3,7 @@ package com.marcos.llmgateway;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import com.marcos.llmgateway.gateway.internal.web.security.SecurityProperties;
 import com.marcos.llmgateway.metering.internal.web.UsageSummaryDTO;
 import java.util.List;
 import java.util.Map;
@@ -10,20 +11,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.TestRestTemplate;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ActiveProfiles;
-import org.testcontainers.kafka.ConfluentKafkaContainer;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
+
 
 @AutoConfigureTestRestTemplate
 class E2EIntegrationTest extends AbstractIntegrationTest {
@@ -34,8 +28,13 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private SecurityProperties securityProperties;
+
     @Test
     void endToEnd_requestFlowsThroughCache_provider_kafka_database_andAdmin() {
+        assertThat(securityProperties.findByKey("sk-test-alice")).isPresent();
+
         // 1) POST chat completion as alice
         Map<String, Object> body = Map.of(
                 "model", "mock-fast",
@@ -46,7 +45,7 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
         userHeaders.setContentType(MediaType.APPLICATION_JSON);
         userHeaders.setBearerAuth("sk-test-alice");
 
-        ResponseEntity<Map> chatResponse = restTemplate.exchange(
+        ResponseEntity<?> chatResponse = restTemplate.exchange(
                 "/v1/chat/completions",
                 HttpMethod.POST,
                 new HttpEntity<>(body, userHeaders),
@@ -71,9 +70,10 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
                 "SELECT model, provider, cache_hit, prompt_tokens, completion_tokens " +
                         "FROM usage_events WHERE tenant_id = 'alice-corp'"
         );
-        assertThat(row.get("model")).isEqualTo("mock-fast");
-        assertThat(row.get("provider")).isEqualTo("mock");
-        assertThat(row.get("cache_hit")).isEqualTo(false);
+        assertThat(row)
+                .containsEntry("model", "mock-fast")
+                .containsEntry("provider", "mock")
+                .containsEntry("cache_hit", false);
         assertThat((Integer) row.get("prompt_tokens")).isPositive();
 
         // 4) Admin endpoint reflects the usage
@@ -91,8 +91,8 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
         UsageSummaryDTO summary = adminResponse.getBody();
         assertThat(summary).isNotNull();
         assertThat(summary.totalRequests()).isEqualTo(1L);
-        assertThat(summary.cacheHits()).isEqualTo(0L);
+        assertThat(summary.cacheHits()).isZero();
         assertThat(summary.byModel()).hasSize(1);
-        assertThat(summary.byModel().get(0).model()).isEqualTo("mock-fast");
+        assertThat(summary.byModel().getFirst().model()).isEqualTo("mock-fast");
     }
 }

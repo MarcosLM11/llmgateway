@@ -2,10 +2,6 @@ package com.marcos.llmgateway.cache.internal;
 
 import com.marcos.llmgateway.AbstractIntegrationTest;
 import com.marcos.llmgateway.cache.SemanticCache;
-import com.marcos.llmgateway.gateway.ChatResponse;
-import com.marcos.llmgateway.gateway.Message;
-import com.marcos.llmgateway.gateway.Role;
-import com.marcos.llmgateway.gateway.Usage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,12 +55,5 @@ class PgVectorSemanticCacheIT extends AbstractIntegrationTest {
         Optional<String> result = cache.lookup("tenant-b", "Hello world");
 
         assertThat(result).isEmpty();
-    }
-
-    private ChatResponse sampleResponse(String content) {
-        return new ChatResponse(
-                new Message(Role.ASSISTANT, content),
-                new Usage(5, 10, "mock-model")
-        );
     }
 }

@@ -8,6 +8,10 @@ import com.marcos.llmgateway.gateway.Usage;
 
 public class OpenAiMapper {
 
+    private OpenAiMapper() {
+        /* This utility class should not be instantiated */
+    }
+
     public static OpenAiChatRequestDTO toDTO(ChatRequest request) {
         var messages = request.messages().stream()
                 .map(m -> new OpenAiMessageDTO(m.role().name().toLowerCase(), m.content()))
@@ -16,7 +20,7 @@ public class OpenAiMapper {
     }
 
     public static ChatResponse toDomain(OpenAiChatResponseDTO response) {
-        var choice = response.choices().get(0);
+        var choice = response.choices().getFirst();
         var message = new Message(
                 Role.valueOf(choice.message().role().toUpperCase()),
                 choice.message().content()

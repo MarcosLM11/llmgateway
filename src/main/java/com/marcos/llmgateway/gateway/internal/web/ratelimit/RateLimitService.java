@@ -10,7 +10,7 @@ import java.time.Duration;
 @Component
 public class RateLimitService {
 
-    private Cache<String, Bucket> buckets;
+    private final Cache<String, Bucket> buckets;
     private final RateLimitProperties rateLimitProperties;
 
     public RateLimitService(RateLimitProperties rateLimitProperties) {
@@ -22,9 +22,7 @@ public class RateLimitService {
 
     public boolean tryConsume(String tenantId) {
         Bucket bucket = buckets.get(tenantId, this::newBucket);
-        boolean consumed = bucket.tryConsume(1);
-
-        return consumed;
+        return bucket.tryConsume(1);
     }
 
     private Bucket newBucket(String tenantId) {

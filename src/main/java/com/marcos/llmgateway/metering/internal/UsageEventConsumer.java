@@ -4,6 +4,7 @@ import com.marcos.llmgateway.metering.UsageEvent;
 import com.marcos.llmgateway.metering.UsageEventPublisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
@@ -31,10 +32,12 @@ class UsageEventConsumer {
                 log.debug("Duplicate UsageEvent ignored requestId={}", event.requestId());
             }
             ack.acknowledge();
-        } catch (RuntimeException e) {
-            log.error("Failed to persist UsageEvent requestId={}", event.requestId(), e);
+        } catch (DataAccessException e) {
             // No acknowledge → Kafka redeliver
-            throw e;
+            throw new IllegalStateException(
+                    "Failed to persist UsageEvent requestId=" + event.requestId(),
+                    e
+            );
         }
     }
 }

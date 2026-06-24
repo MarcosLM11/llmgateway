@@ -114,7 +114,7 @@ class OpenAiLlmProviderTest {
     @Test
     void chat_propagatesModelAndTemperatureInRequest() {
         wireMock.stubFor(post(urlEqualTo("/v1/chat/completions"))
-                .willReturn(okJson(successResponse("gpt-4-turbo"))));
+                .willReturn(okJson(successResponse())));
 
         provider.chat(chatRequest("gpt-4-turbo", "Test message", 0.5));
 
@@ -132,7 +132,9 @@ class OpenAiLlmProviderTest {
         wireMock.stubFor(post(urlEqualTo("/v1/chat/completions"))
                 .willReturn(serverError()));
 
-        assertThatThrownBy(() -> provider.chat(chatRequest("gpt-4o", "Hi", 0.7)))
+        var request = chatRequest("gpt-4o", "Hi", 0.7);
+
+        assertThatThrownBy(() -> provider.chat(request))
                 .isInstanceOf(ProviderException.class);
     }
 
@@ -141,7 +143,9 @@ class OpenAiLlmProviderTest {
         wireMock.stubFor(post(urlEqualTo("/v1/chat/completions"))
                 .willReturn(unauthorized()));
 
-        assertThatThrownBy(() -> provider.chat(chatRequest("gpt-4o", "Hi", 0.7)))
+        var request = chatRequest("gpt-4o", "Hi", 0.7);
+
+        assertThatThrownBy(() -> provider.chat(request))
                 .isInstanceOf(ProviderException.class);
     }
 
@@ -162,13 +166,13 @@ class OpenAiLlmProviderTest {
         );
     }
 
-    private String successResponse(String model) {
+    private String successResponse() {
         return """
                 {
                   "id": "chatcmpl-xyz",
                   "object": "chat.completion",
                   "created": 1714012800,
-                  "model": "%s",
+                  "model": "gpt-4-turbo",
                   "choices": [{
                     "index": 0,
                     "message": { "role": "assistant", "content": "OK" },
@@ -180,6 +184,6 @@ class OpenAiLlmProviderTest {
                     "total_tokens": 7
                   }
                 }
-                """.formatted(model);
+                """;
     }
 }

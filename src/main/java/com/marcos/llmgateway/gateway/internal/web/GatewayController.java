@@ -41,7 +41,7 @@ public class GatewayController {
         }
         try {
             return RoutingStrategy.valueOf(strategy.trim().toUpperCase().replace('-', '_'));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             throw new InvalidStrategyException("Invalid strategy header value: " + strategy);
         }
     }

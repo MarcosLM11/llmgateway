@@ -16,6 +16,11 @@ import java.util.UUID;
 
 public class OpenAiChatMapper {
 
+    private OpenAiChatMapper() {
+        /* This utility class should not be instantiated */
+    }
+
+
     public static ChatRequest toDomain(OpenAiChatRequestDTO request, RoutingStrategy strategy, String tenantId) {
         var chatMessages = request.messages().stream()
                 .map(m -> new Message(Role.valueOf(m.role().toUpperCase()), m.content()))

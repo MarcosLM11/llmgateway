@@ -34,7 +34,8 @@ public class OllamaLlmProvider implements LlmProvider {
                     .body(ollamaRequest)
                     .retrieve()
                     .body(OllamaChatResponseDTO.class);
-            return toDomain(ollamaResponse);
+
+            return ollamaResponse != null ? toDomain(ollamaResponse) : null;
         } catch (RestClientException e) {
             log.error("Error in Ollama response" , e);
             throw new ProviderException("Ollama call failed: " + e.getMessage(), e);

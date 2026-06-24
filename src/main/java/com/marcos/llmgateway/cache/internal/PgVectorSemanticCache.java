@@ -7,7 +7,6 @@ import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.annotation.PostConstruct;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import tools.jackson.databind.ObjectMapper;
 import org.postgresql.util.PGobject;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -17,17 +16,15 @@ public class PgVectorSemanticCache implements SemanticCache {
 
     private final JdbcTemplate jdbcTemplate;
     private final EmbeddingService embeddingService;
-    private final ObjectMapper objectMapper;
     private final MeterRegistry meterRegistry;
     private final CacheProperties cacheProperties;
 
     private Counter cacheHits;
     private Counter cacheMisses;
 
-    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, ObjectMapper objectMapper, CacheProperties cacheProperties, MeterRegistry meterRegistry) {
+    public PgVectorSemanticCache(JdbcTemplate jdbcTemplate, EmbeddingService embeddingService, CacheProperties cacheProperties, MeterRegistry meterRegistry) {
         this.jdbcTemplate = jdbcTemplate;
         this.embeddingService = embeddingService;
-        this.objectMapper = objectMapper;
         this.cacheProperties = cacheProperties;
         this.meterRegistry = meterRegistry;
     }

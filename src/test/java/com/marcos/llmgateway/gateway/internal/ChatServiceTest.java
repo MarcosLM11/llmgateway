@@ -118,7 +118,9 @@ class ChatServiceTest {
         when(providerA.chat(any())).thenThrow(new ProviderException("A failed", null));
         when(providerB.chat(any())).thenThrow(new ProviderException("B failed", null));
 
-        assertThatThrownBy(() -> newService().chat(request(RoutingStrategy.SEQUENTIAL_FALLBACK)))
+        ChatService service = newService();
+        ChatRequest req = request(RoutingStrategy.SEQUENTIAL_FALLBACK);
+        assertThatThrownBy(() -> service.chat(req))
                 .isInstanceOf(AllProvidersFailedException.class);
     }
 
@@ -139,7 +141,9 @@ class ChatServiceTest {
         when(providerA.chat(any())).thenThrow(new ProviderException("A failed", null));
         when(providerB.chat(any())).thenThrow(new ProviderException("B failed", null));
 
-        assertThatThrownBy(() -> newService().chat(request(RoutingStrategy.PARALLEL_RACE)))
+        ChatService service = newService();
+        ChatRequest req = request(RoutingStrategy.PARALLEL_RACE);
+        assertThatThrownBy(() -> service.chat(req))
                 .isInstanceOf(AllProvidersFailedException.class);
     }
 
@@ -149,7 +153,9 @@ class ChatServiceTest {
         when(providerB.supports("test-model")).thenReturn(false);
         when(cache.lookup(any(), any())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> newService().chat(request(RoutingStrategy.SEQUENTIAL_FALLBACK)))
+        ChatService service = newService();
+        ChatRequest req = request(RoutingStrategy.SEQUENTIAL_FALLBACK);
+        assertThatThrownBy(() -> service.chat(req))
                 .isInstanceOf(NoProviderForModelException.class);
     }
 

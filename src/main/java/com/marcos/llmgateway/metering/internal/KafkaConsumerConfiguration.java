@@ -20,9 +20,6 @@ class KafkaConsumerConfiguration {
 
         // Clave: habilita ack manual para que Spring inyecte Acknowledgment en el listener
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
-        // alternativa más inmediata:
-        // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE);
-
         return factory;
     }
 }

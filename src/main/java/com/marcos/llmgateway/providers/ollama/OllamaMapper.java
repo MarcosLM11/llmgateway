@@ -1,9 +1,16 @@
 package com.marcos.llmgateway.providers.ollama;
 
-import com.marcos.llmgateway.gateway.*;
+import com.marcos.llmgateway.gateway.ChatRequest;
+import com.marcos.llmgateway.gateway.ChatResponse;
+import com.marcos.llmgateway.gateway.Message;
+import com.marcos.llmgateway.gateway.Role;
+import com.marcos.llmgateway.gateway.Usage;
 
 public class OllamaMapper {
 
+    private OllamaMapper() {
+        /* This utility class should not be instantiated */
+    }
 
     public static ChatResponse toDomain(OllamaChatResponseDTO response) {
         return new ChatResponse(

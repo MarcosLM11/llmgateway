@@ -7,6 +7,7 @@ import com.marcos.llmgateway.gateway.Message;
 import com.marcos.llmgateway.gateway.ProviderException;
 import com.marcos.llmgateway.gateway.Role;
 import com.marcos.llmgateway.gateway.Usage;
+import java.security.SecureRandom;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,8 @@ import org.springframework.stereotype.Component;
 @Order(100)
 @Component
 public class MockLlmProvider implements LlmProvider {
+
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final MockProperties mockProperties;
 
@@ -38,7 +41,7 @@ public class MockLlmProvider implements LlmProvider {
         }
 
         // Simulate failure based on failRate
-        if (Math.random() < mockProperties.failRate()) {
+        if (SECURE_RANDOM.nextDouble() < mockProperties.failRate()) {
             throw new ProviderException("Mock provider intentional failure", null);
         }
 

@@ -7,18 +7,18 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import tools.jackson.databind.ObjectMapper;
-
 import java.io.IOException;
 
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private ObjectMapper objectMapper;
-    private RateLimitService rateLimitService;
+    private final ObjectMapper objectMapper;
+    private final RateLimitService rateLimitService;
 
     public RateLimitFilter(RateLimitService rateLimitService,  ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
@@ -27,18 +27,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+            @NonNull HttpServletRequest request,
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain) throws ServletException, IOException {
 
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String tenantId
-                && !tenantId.equals("anonymousUser")) {
-            if (!rateLimitService.tryConsume(tenantId)) {
+        if (auth != null && auth.isAuthenticated() && auth.getPrincipal() instanceof String tenantId && !tenantId.equals("anonymousUser") && !rateLimitService.tryConsume(tenantId)) {
                 writeRateLimitError(response);// 429
                 return;
             }
-        }
+
         filterChain.doFilter(request, response);
     }
 

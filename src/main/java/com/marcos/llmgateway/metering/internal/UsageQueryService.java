@@ -43,7 +43,7 @@ public class UsageQueryService {
         var fromTs = Timestamp.from(from);
         var toTs = Timestamp.from(to);
 
-        var summary = jdbcTemplate.queryForObject(SUMMARY_SQL, (rs, rowNum) -> {
+        var summary = jdbcTemplate.queryForObject(SUMMARY_SQL, (rs, _) -> {
             long totalRequests = rs.getLong("total_requests");
             long cacheHits = rs.getLong("cache_hits");
             long totalPromptTokens = rs.getLong("total_prompt_tokens");
@@ -55,7 +55,7 @@ public class UsageQueryService {
         }, tenantId, fromTs, toTs);
 
         List<ModelUsageDTO> byModel = jdbcTemplate.query(BY_MODEL_SQL,
-                (rs, rowNum) -> new ModelUsageDTO(
+                (rs,_) -> new ModelUsageDTO(
                         rs.getString("model"),
                         rs.getLong("requests"),
                         rs.getLong("total_tokens")

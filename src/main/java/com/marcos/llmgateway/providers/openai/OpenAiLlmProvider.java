@@ -35,7 +35,7 @@ public class OpenAiLlmProvider implements LlmProvider {
                     .body(openAiRequest)
                     .retrieve()
                     .body(OpenAiChatResponseDTO.class);
-            return OpenAiMapper.toDomain(response);
+            return response != null ? OpenAiMapper.toDomain(response) :  null;
         } catch (RestClientException e) {
             log.error("OpenAI call failed", e);
             throw new ProviderException("OpenAI call failed: " + e.getMessage(), e);
