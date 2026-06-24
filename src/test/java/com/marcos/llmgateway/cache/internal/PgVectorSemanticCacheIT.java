@@ -1,7 +1,6 @@
 package com.marcos.llmgateway.cache.internal;
 
 import com.marcos.llmgateway.AbstractIntegrationTest;
-import com.marcos.llmgateway.cache.EmbeddingService;
 import com.marcos.llmgateway.cache.SemanticCache;
 import com.marcos.llmgateway.gateway.ChatResponse;
 import com.marcos.llmgateway.gateway.Message;
@@ -10,15 +9,10 @@ import com.marcos.llmgateway.gateway.Usage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(PgVectorSemanticCacheIT.TestConfig.class)
 class PgVectorSemanticCacheIT extends AbstractIntegrationTest {
 
     @Autowired
@@ -26,15 +20,6 @@ class PgVectorSemanticCacheIT extends AbstractIntegrationTest {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
-
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        @Primary
-        EmbeddingService stubEmbeddingService() {
-            return new StubEmbeddingService();
-        }
-    }
 
     @BeforeEach
     void cleanCache() {
