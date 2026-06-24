@@ -6,11 +6,11 @@ import com.marcos.llmgateway.gateway.LlmProvider;
 import com.marcos.llmgateway.gateway.ProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
-
 import static com.marcos.llmgateway.providers.ollama.OllamaMapper.toDTO;
 import static com.marcos.llmgateway.providers.ollama.OllamaMapper.toDomain;
 
@@ -21,7 +21,7 @@ public class OllamaLlmProvider implements LlmProvider {
     private static final Logger log = LoggerFactory.getLogger(OllamaLlmProvider.class);
     private final RestClient restClient;
 
-    public OllamaLlmProvider(RestClient restClient) {
+    public OllamaLlmProvider(@Qualifier("ollamaRestClient") RestClient restClient) {
         this.restClient = restClient;
     }
 
