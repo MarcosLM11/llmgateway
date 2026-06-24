@@ -12,10 +12,10 @@ Completed items are kept (struck through) to show the project's evolution.
 ## Security
 
 - [ ] **API keys stored as plaintext in `application.yml`.** Acceptable for demo but production should hash with Argon2id or BCrypt and persist in a database.
-- [ ] **API key comparison uses `String.equals`.** Vulnerable to timing attacks. Production should use `MessageDigest.isEqual` or a constant-time comparator.
+- [x] ~~**API key comparison uses `String.equals`.**~~ Fixed: `ApiKeyComparator.constantTimeEquals` wraps `MessageDigest.isEqual` (XOR-accumulate, no early exit). Length leakage accepted for uniform-length keys.
 - [ ] **Authentication principal is a raw `String tenantId`.** Should evolve to a typed `AuthenticatedTenant` record carrying `tenantId`, `apiKeyId`, permitted models, plan, etc.
 - [x] ~~**Admin role separation.**~~ Implemented in Phase 6: `ApiKeyEntry.admin` flag drives `ROLE_ADMIN` granting access to `/admin/**` endpoints.
-- [ ] **Generated security password warning at startup.** Cosmetic noise from `UserDetailsServiceAutoConfiguration`; could be silenced by excluding the autoconfig.
+- [x] ~~**Generated security password warning at startup.**~~ Fixed: `UserDetailsServiceAutoConfiguration` excluded via `@SpringBootApplication(exclude=...)`. App uses custom API-key auth; no `UserDetailsService` is needed.
 
 ## Rate limiting
 

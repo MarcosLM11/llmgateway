@@ -10,7 +10,7 @@ public record SecurityProperties(
 ) {
     public Optional<ApiKeyEntry> findByKey(String key) {
         return apiKeys.stream()
-                .filter(e -> e.key().equals(key))
+                .filter(e -> ApiKeyComparator.constantTimeEquals(e.key(), key))
                 .findFirst();
     }
 }
