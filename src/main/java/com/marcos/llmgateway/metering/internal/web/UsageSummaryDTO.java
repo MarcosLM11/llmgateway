@@ -1,5 +1,6 @@
 package com.marcos.llmgateway.metering.internal.web;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -14,5 +15,7 @@ public record UsageSummaryDTO(
         long totalCompletionTokens,
         long totalTokens,
         long avgLatencyMs,
+        BigDecimal totalCostUsd,
+        long requestsWithoutPricing,
         List<ModelUsageDTO> byModel
 ) {}

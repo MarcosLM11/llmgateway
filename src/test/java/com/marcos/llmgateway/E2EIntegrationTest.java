@@ -94,5 +94,8 @@ class E2EIntegrationTest extends AbstractIntegrationTest {
         assertThat(summary.cacheHits()).isZero();
         assertThat(summary.byModel()).hasSize(1);
         assertThat(summary.byModel().getFirst().model()).isEqualTo("mock-fast");
+        // mock provider has $0.00 pricing — cost is known and zero
+        assertThat(summary.totalCostUsd()).isNotNull();
+        assertThat(summary.requestsWithoutPricing()).isZero();
     }
 }

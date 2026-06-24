@@ -97,4 +97,4 @@ Completed items are kept (struck through) to show the project's evolution.
 - [x] ~~**Phase 7**: Test harness + CI~~
 - [ ] **gRPC endpoint + SDK helpers.** Originally planned as Phase 7, dropped in favor of testing & CI. May revisit later as separate work.
 - [ ] **Per-tenant config UI.** Admin frontend to manage API keys, rate limits, model permissions.
-- [ ] **Cost tracking.** Translate `UsageEvent.totalTokens` into dollars per model/provider with configurable pricing tables.
+- [x] ~~**Cost tracking.**~~ Implemented: `pricing_rules` table in Postgres (wildcard `*` fallback per provider), `estimated_cost_usd` column in `usage_events` (computed at consume-time via `CostCalculator` + `PricingRepository`), `BigDecimal` arithmetic, `null` for unknown pricing. Exposed in `GET /admin/usage` response (`totalCostUsd`, `requestsWithoutPricing`, per-model `totalCostUsd` / `avgCostPerRequestUsd`). Cache hits cost $0.
